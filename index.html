@@ -18,9 +18,17 @@
             height: 100vh;
             overflow: hidden;
         }
+        #gameContainer {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         canvas {
             border: 4px solid #0f0;
             image-rendering: pixelated;
+            max-width: 100%;
         }
         h1 {
             font-size: 24px;
@@ -32,6 +40,7 @@
             margin-bottom: 20px;
             text-align: center;
             max-width: 600px;
+            padding: 0 10px;
         }
         #gameOverMessage {
             position: absolute;
@@ -43,43 +52,63 @@
             padding: 20px;
             border: 2px solid #0f0;
             text-align: center;
-            font-size: 24px;
+            font-size: 18px;
             display: none;
+            max-width: 80%;
         }
     </style>
 </head>
 <body>
-    <h1>Lung Pong: The Grim Reality of Smoking</h1>
-    <div id="message">
-        Every puff is a battle. Defend your lungs from the relentless assault of tobacco.
+    <div id="gameContainer">
+        <h1>Lung Pong: The Grim Reality of Smoking</h1>
+        <div id="message">
+            Every puff is a battle. Defend your lungs from the relentless assault of tobacco.
+        </div>
+        <canvas id="gameCanvas"></canvas>
     </div>
-    <canvas id="gameCanvas" width="320" height="480"></canvas>
     <div id="gameOverMessage"></div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const gameOverMessageEl = document.getElementById('gameOverMessage');
 
+        // Set canvas size based on screen size
+        function setCanvasSize() {
+            const containerWidth = document.getElementById('gameContainer').offsetWidth;
+            const containerHeight = window.innerHeight * 0.7; // 70% of screen height
+            const aspectRatio = 2 / 3; // height = 1.5 * width
+            
+            if (containerHeight / containerWidth > aspectRatio) {
+                canvas.width = containerWidth - 20; // Account for border
+                canvas.height = canvas.width * aspectRatio;
+            } else {
+                canvas.height = containerHeight - 20; // Account for border
+                canvas.width = canvas.height / aspectRatio;
+            }
+        }
+
+        setCanvasSize();
+        window.addEventListener('resize', setCanvasSize);
+
         const ball = {
             x: canvas.width / 2,
             y: canvas.height - 50,
-            radius: 4,
-            dx: 2,
-            dy: -2
+            radius: canvas.width * 0.015,
+            dx: canvas.width * 0.005,
+            dy: -canvas.width * 0.005
         };
 
         const paddle = {
-            width: 60,
-            height: 15,
-            x: canvas.width / 2 - 30,
-            speed: 5
+            width: canvas.width * 0.2,
+            height: canvas.height * 0.03,
+            x: canvas.width / 2 - (canvas.width * 0.1),
+            speed: canvas.width * 0.02
         };
 
-        const bronchi = [];
-        const bronchiWidth = 15;
-        const bronchiHeight = 15;
-        const bronchiPadding = 3;
-        const bronchiOffsetTop = 30;
+        const bronchiWidth = canvas.width * 0.05;
+        const bronchiHeight = canvas.width * 0.05;
+        const bronchiPadding = canvas.width * 0.01;
+        const bronchiOffsetTop = canvas.height * 0.1;
 
         let lives = 3;
         let score = 0;
@@ -99,20 +128,28 @@
         ];
 
         // Initialize bronchi and count total
+        let bronchi = [];
         let totalBronchi = 0;
-        for (let r = 0; r < lungShape.length; r++) {
-            bronchi[r] = [];
-            for (let c = 0; c < lungShape[r].length; c++) {
-                if (lungShape[r][c] === 1) {
-                    bronchi[r][c] = { 
-                        x: c * (bronchiWidth + bronchiPadding) + bronchiPadding + (canvas.width - (lungShape[r].length * (bronchiWidth + bronchiPadding))) / 2, 
-                        y: r * (bronchiHeight + bronchiPadding) + bronchiOffsetTop,
-                        status: 1 
-                    };
-                    totalBronchi++;
+
+        function initializeBronchi() {
+            bronchi = [];
+            totalBronchi = 0;
+            for (let r = 0; r < lungShape.length; r++) {
+                bronchi[r] = [];
+                for (let c = 0; c < lungShape[r].length; c++) {
+                    if (lungShape[r][c] === 1) {
+                        bronchi[r][c] = { 
+                            x: c * (bronchiWidth + bronchiPadding) + bronchiPadding + (canvas.width - (lungShape[r].length * (bronchiWidth + bronchiPadding))) / 2, 
+                            y: r * (bronchiHeight + bronchiPadding) + bronchiOffsetTop,
+                            status: 1 
+                        };
+                        totalBronchi++;
+                    }
                 }
             }
         }
+
+        initializeBronchi();
 
         function drawBall() {
             ctx.beginPath();
@@ -147,9 +184,9 @@
         }
 
         function drawStats() {
-            ctx.font = '12px Courier New';
+            ctx.font = `${canvas.width * 0.03}px Courier New`;
             ctx.fillStyle = '#0f0';
-            ctx.fillText(`Lives: ${lives}  Score: ${score}  Bronchi: ${totalBronchi}`, 10, 20);
+            ctx.fillText(`Lives: ${lives}  Score: ${score}  Bronchi: ${totalBronchi}`, canvas.width * 0.03, canvas.height * 0.05);
         }
 
         function collisionDetection() {
@@ -174,7 +211,7 @@
         }
 
         function showGameOverMessage(message) {
-            gameOverMessageEl.innerHTML = message + "<br><br>Click or tap to restart.";
+            gameOverMessageEl.innerHTML = message + "<br><br>Tap to restart.";
             gameOverMessageEl.style.display = 'block';
         }
 
@@ -205,9 +242,9 @@
                         paused = true;
                         setTimeout(() => {
                             ball.x = canvas.width / 2;
-                            ball.y = canvas.height - 30;
-                            ball.dx = 2;
-                            ball.dy = -2;
+                            ball.y = canvas.height - 50;
+                            ball.dx = canvas.width * 0.005;
+                            ball.dy = -canvas.width * 0.005;
                             paddle.x = (canvas.width - paddle.width) / 2;
                             paused = false;
                             draw();
@@ -227,38 +264,49 @@
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && paddle.x > 0) {
-                paddle.x -= paddle.speed;
+                paddle.x = Math.max(0, paddle.x - paddle.speed);
             } else if (e.key === 'ArrowRight' && paddle.x < canvas.width - paddle.width) {
-                paddle.x += paddle.speed;
+                paddle.x = Math.min(canvas.width - paddle.width, paddle.x + paddle.speed);
             }
         });
 
-        // Mouse controls
-        canvas.addEventListener('mousemove', (e) => {
-            const relativeX = e.clientX - canvas.offsetLeft;
+        // Mouse/Touch controls
+        function handleMove(e) {
+            let relativeX;
+            if (e.type === 'mousemove') {
+                relativeX = e.clientX - canvas.offsetLeft;
+            } else if (e.type === 'touchmove') {
+                relativeX = e.touches[0].clientX - canvas.offsetLeft;
+            }
             if (relativeX > 0 && relativeX < canvas.width) {
                 paddle.x = relativeX - paddle.width / 2;
             }
-        });
+        }
 
-        // Touch controls
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const relativeX = e.touches[0].clientX - canvas.offsetLeft;
-            if (relativeX > 0 && relativeX < canvas.width) {
-                paddle.x = relativeX - paddle.width / 2;
-            }
-        }, { passive: false });
+        canvas.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('touchmove', handleMove, { passive: false });
 
         // Prevent scrolling on touch devices
         document.body.addEventListener('touchmove', (e) => {
-            e.preventDefault();
+            if (e.target === canvas) {
+                e.preventDefault();
+            }
         }, { passive: false });
 
         // Restart game on click/tap after game over
         canvas.addEventListener('click', () => {
             if (gameOver) {
-                document.location.reload();
+                gameOver = false;
+                lives = 3;
+                score = 0;
+                initializeBronchi();
+                ball.x = canvas.width / 2;
+                ball.y = canvas.height - 50;
+                ball.dx = canvas.width * 0.005;
+                ball.dy = -canvas.width * 0.005;
+                paddle.x = (canvas.width - paddle.width) / 2;
+                gameOverMessageEl.style.display = 'none';
+                draw();
             }
         });
 
