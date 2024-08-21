@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Retro Lung Pong: The Grim Reality of Smoking</title>
+    <title>Lung Pong: The Grim Reality of Smoking</title>
     <style>
         body {
             margin: 0;
@@ -49,9 +49,9 @@
     </style>
 </head>
 <body>
-    <h1>Retro Lung Pong: The Grim Reality of Smoking</h1>
+    <h1>Lung Pong: The Grim Reality of Smoking</h1>
     <div id="message">
-        Protect your lungs from the cigarette's assault. Each bronchi lost brings you closer to danger.
+        Every puff is a battle. Defend your lungs from the relentless assault of tobacco.
     </div>
     <canvas id="gameCanvas" width="320" height="480"></canvas>
     <div id="gameOverMessage"></div>
@@ -70,7 +70,7 @@
 
         const paddle = {
             width: 60,
-            height: 10,
+            height: 15,
             x: canvas.width / 2 - 30,
             speed: 5
         };
@@ -123,8 +123,13 @@
         }
 
         function drawPaddle() {
-            ctx.fillStyle = '#0f0';
+            // Cigarette body
+            ctx.fillStyle = '#FFA500';
             ctx.fillRect(paddle.x, canvas.height - paddle.height, paddle.width, paddle.height);
+            
+            // Cigarette filter
+            ctx.fillStyle = '#F5DEB3';
+            ctx.fillRect(paddle.x, canvas.height - paddle.height, paddle.width / 3, paddle.height);
         }
 
         function drawBronchi() {
@@ -160,7 +165,7 @@
                             totalBronchi--;
                             if (totalBronchi === 0) {
                                 gameOver = true;
-                                showGameOverMessage("The cigarettes won. Your lungs are destroyed. Game Over.");
+                                showGameOverMessage("Your lungs have succumbed to the relentless assault of tobacco. This is the grim reality for millions. It's never too late to quit and reclaim your health.");
                             }
                         }
                     }
@@ -169,7 +174,7 @@
         }
 
         function showGameOverMessage(message) {
-            gameOverMessageEl.textContent = message;
+            gameOverMessageEl.innerHTML = message + "<br><br>Click or tap to restart.";
             gameOverMessageEl.style.display = 'block';
         }
 
@@ -195,7 +200,7 @@
                     lives--;
                     if (lives === 0) {
                         gameOver = true;
-                        showGameOverMessage(`Game Over. Final Score: ${score}`);
+                        showGameOverMessage("Game Over. Your struggle against tobacco ends here, but in real life, it's never too late to quit. Your lungs, and your loved ones, will thank you. Final Score: " + score);
                     } else {
                         paused = true;
                         setTimeout(() => {
@@ -249,6 +254,13 @@
         document.body.addEventListener('touchmove', (e) => {
             e.preventDefault();
         }, { passive: false });
+
+        // Restart game on click/tap after game over
+        canvas.addEventListener('click', () => {
+            if (gameOver) {
+                document.location.reload();
+            }
+        });
 
         draw();
     </script>
